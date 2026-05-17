@@ -13,7 +13,7 @@ export type Transaction = {
   id: string; project_id: string; type: 'INCOME' | 'EXPENSE'
   title: string; amount: number; category: string; date: string
   notes?: string; quantity?: number; unit_price?: number
-  receipt_url?: string; created_at: string
+  receipt_url?: string; status?: string; created_at: string
 }
 export type Category = {
   id: string; user_id: string; name: string
