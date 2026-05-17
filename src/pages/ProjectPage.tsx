@@ -71,15 +71,16 @@ export default function ProjectPage() {
     setShareMsg('تم نسخ الرابط!'); setTimeout(() => setShareMsg(''), 2000)
   }
 
-  const filtered = transactions.filter(t => {
+  const approvedTxns = transactions.filter(t => !(t as any).status || (t as any).status === "approved")
+const filtered = approvedTxns.filter(t => {
     if (activeTab !== 'all' && t.type !== activeTab) return false
     if (filterCat && t.category !== filterCat) return false
     if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !t.category?.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
-  const income = transactions.filter(t => t.type==='INCOME').reduce((s,t) => s+t.amount, 0)
-  const expense = transactions.filter(t => t.type==='EXPENSE').reduce((s,t) => s+t.amount, 0)
+  const income = approvedTxns.filter(t => t.type==='INCOME').reduce((s,t) => s+t.amount, 0)
+  const expense = approvedTxns.filter(t => t.type==='EXPENSE').reduce((s,t) => s+t.amount, 0)
   const balance = income - expense
   const fmt = (n: number) => n.toLocaleString('ar-SA')
 
