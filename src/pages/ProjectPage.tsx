@@ -172,6 +172,35 @@ export default function ProjectPage() {
           ))}
         </div>
 
+        {/* Pending approvals */}
+        {isOwner && transactions.filter(t => (t as any).status === 'pending').length > 0 && (
+          <div className="card fade-in" style={{borderColor:'rgba(201,169,110,0.3)'}}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"/>
+              <span className="font-bold text-sm" style={{color:'#c9a96e'}}>
+                طلبات تحتاج موافقة ({transactions.filter(t => (t as any).status === 'pending').length})
+              </span>
+            </div>
+            <div className="space-y-3">
+              {transactions.filter(t => (t as any).status === 'pending').map(t => (
+                <div key={t.id} className="flex items-center justify-between gap-3 p-3 rounded-xl" style={{background:'rgba(255,255,255,0.04)'}}>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{t.title}</p>
+                    <p className="text-xs opacity-40 mt-0.5">{t.category} · {t.date}</p>
+                  </div>
+                  <p className="font-black text-green-400">+{fmt(t.amount)}</p>
+                  <div className="flex gap-2">
+                    <button onClick={async () => { await supabase.from('transactions').update({status:'approved'}).eq('id', t.id); fetchAll() }}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-green-400 hover:bg-green-400/20 transition-colors text-lg">✓</button>
+                    <button onClick={async () => { await supabase.from('transactions').update({status:'rejected'}).eq('id', t.id); fetchAll() }}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-400/20 transition-colors text-lg">✗</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {activeView==='list' && <>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative flex-1 min-w-40"><Search size={14} className="absolute top-1/2 -translate-y-1/2 left-4 opacity-30"/><input value={search} onChange={e=>setSearch(e.target.value)} className="input-field pl-10 !py-2.5 text-sm" placeholder="بحث..."/></div>
