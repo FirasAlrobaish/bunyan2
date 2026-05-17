@@ -186,7 +186,7 @@ export default function ProjectPage() {
                 <div key={t.id} className="flex items-center justify-between gap-3 p-3 rounded-xl" style={{background:'rgba(255,255,255,0.04)'}}>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{t.title}</p>
-                    <p className="text-xs opacity-40 mt-0.5">{t.category} · {t.date}</p>
+                    <p className="text-xs opacity-40 mt-0.5">{t.category} · {t.date}</p>{(t as any).receipt_url && <a href={(t as any).receipt_url} target="_blank" rel="noreferrer" className="text-xs underline opacity-40 hover:opacity-70">📎 الإيصال</a>}
                   </div>
                   <p className="font-black text-green-400">+{fmt(t.amount)}</p>
                   <div className="flex gap-2">
