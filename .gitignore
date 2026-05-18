@@ -3,3 +3,5 @@ dist
 .env
 .DS_Store
 *.local
+src/lib/adminSupabase.ts
+src/lib/adminSupabase.ts

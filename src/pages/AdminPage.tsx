@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Building2, Users, TrendingUp, TrendingDown, Wallet, LogOut, ChevronLeft, BarChart2, AlertCircle } from 'lucide-react'
-import { format } from 'date-fns'
-import { ar } from 'date-fns/locale'
+import { adminSupabase } from '../lib/adminSupabase'
+import { Building2, Users, TrendingUp, TrendingDown, LogOut, ChevronLeft, Phone, MapPin, User } from 'lucide-react'
 
 type UserData = {
   id: string
-  email: string
+  full_name: string
+  phone: string
+  region: string
   created_at: string
-  projects: { id: string; name: string; icon: string }[]
+  projects: { id: string; name: string }[]
   totalIncome: number
   totalExpense: number
 }
@@ -22,17 +23,13 @@ export default function AdminPage() {
   const [totalStats, setTotalStats] = useState({ users: 0, projects: 0, income: 0, expense: 0 })
   const [activeUser, setActiveUser] = useState<string | null>(null)
 
-  useEffect(() => {
-    checkAdmin()
-  }, [])
+  useEffect(() => { checkAdmin() }, [])
 
   const checkAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { navigate('/auth'); return }
-
     const { data: admin } = await supabase.from('admins').select('*').eq('user_id', user.id).single()
     if (!admin) { navigate('/'); return }
-
     setIsAdmin(true)
     fetchData()
   }
@@ -40,36 +37,31 @@ export default function AdminPage() {
   const fetchData = async () => {
     setLoading(true)
 
-    // Get all projects with transactions
-    const { data: projects } = await supabase
-      .from('projects')
-      .select('*, transactions(*)')
-
-    // Get all transactions
-    const { data: allTxns } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('status', 'approved')
+    const { data: projects } = await adminSupabase.from('projects').select('*')
+    const { data: allTxns } = await adminSupabase.from('transactions').select('*')
+    const { data: profiles } = await adminSupabase.from('profiles').select('*')
 
     if (!projects) { setLoading(false); return }
 
-    // Group by user_id
     const userMap: Record<string, UserData> = {}
 
     projects.forEach((p: any) => {
       if (!userMap[p.user_id]) {
+        const profile = profiles?.find(pr => pr.id === p.user_id)
         userMap[p.user_id] = {
           id: p.user_id,
-          email: '',
+          full_name: profile?.full_name || 'غير محدد',
+          phone: profile?.phone || '-',
+          region: profile?.region || '-',
           created_at: p.created_at,
           projects: [],
           totalIncome: 0,
           totalExpense: 0
         }
       }
-      userMap[p.user_id].projects.push({ id: p.id, name: p.name, icon: p.icon })
+      userMap[p.user_id].projects.push({ id: p.id, name: p.name })
 
-      const txns = allTxns?.filter(t => t.project_id === p.id) || []
+      const txns = allTxns?.filter((t: any) => t.project_id === p.id && (!t.status || t.status === 'approved')) || []
       txns.forEach((t: any) => {
         if (t.type === 'INCOME') userMap[p.user_id].totalIncome += t.amount
         else userMap[p.user_id].totalExpense += t.amount
@@ -79,22 +71,11 @@ export default function AdminPage() {
     const usersArr = Object.values(userMap)
     setUsers(usersArr)
 
-    const totalIncome = allTxns?.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0) || 0
-    const totalExpense = allTxns?.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0) || 0
+    const totalIncome = allTxns?.filter((t: any) => t.type === 'INCOME' && (!t.status || t.status === 'approved')).reduce((s: number, t: any) => s + t.amount, 0) || 0
+    const totalExpense = allTxns?.filter((t: any) => t.type === 'EXPENSE' && (!t.status || t.status === 'approved')).reduce((s: number, t: any) => s + t.amount, 0) || 0
 
-    setTotalStats({
-      users: usersArr.length,
-      projects: projects.length,
-      income: totalIncome,
-      expense: totalExpense
-    })
-
+    setTotalStats({ users: usersArr.length, projects: projects.length, income: totalIncome, expense: totalExpense })
     setLoading(false)
-  }
-
-  const logout = async () => {
-    await supabase.auth.signOut()
-    navigate('/auth')
   }
 
   const fmt = (n: number) => n.toLocaleString('ar-SA')
@@ -109,7 +90,6 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#0f1117' }}>
-      {/* Header */}
       <header className="sticky top-0 z-50" style={{
         background: 'rgba(15,17,23,0.9)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(201,169,110,0.1)'
@@ -125,15 +105,15 @@ export default function AdminPage() {
               <span className="text-xs opacity-40 mr-2 bg-white/5 px-2 py-0.5 rounded-full">أدمن</span>
             </div>
           </div>
-          <button onClick={logout} className="btn-ghost !py-2 !px-3 flex items-center gap-2 text-sm">
-            <LogOut size={14} />
-            خروج
+          <button onClick={async () => { await supabase.auth.signOut(); navigate('/auth') }}
+            className="btn-ghost !py-2 !px-3 flex items-center gap-2 text-sm">
+            <LogOut size={14} />خروج
           </button>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {/* Platform Stats */}
+        {/* Stats */}
         <div>
           <h2 className="text-lg font-bold mb-4 opacity-60">إحصائيات المنصة</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -160,27 +140,29 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Users List */}
+        {/* Users */}
         <div>
           <h2 className="text-lg font-bold mb-4 opacity-60">المقاولون ({users.length})</h2>
           <div className="space-y-3">
-            {users.length === 0 ? (
-              <div className="card text-center py-12 opacity-30">
-                <Users size={36} className="mx-auto mb-3 opacity-50" />
-                <p>لا يوجد مقاولون بعد</p>
-              </div>
-            ) : users.map((u, i) => (
+            {users.map((u, i) => (
               <div key={u.id} className="card fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
                 <div className="flex items-center justify-between cursor-pointer"
                   onClick={() => setActiveUser(activeUser === u.id ? null : u.id)}>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg"
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-lg"
                       style={{ background: 'linear-gradient(135deg, #c9a96e22, #c9a96e44)', color: '#c9a96e' }}>
                       {u.projects.length}
                     </div>
                     <div>
-                      <p className="font-semibold text-sm">{u.id.substring(0, 8)}...</p>
-                      <p className="text-xs opacity-40 mt-0.5">{u.projects.length} مشروع</p>
+                      <p className="font-bold">{u.full_name}</p>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <span className="text-xs opacity-40 flex items-center gap-1">
+                          <Phone size={10} />{u.phone}
+                        </span>
+                        <span className="text-xs opacity-40 flex items-center gap-1">
+                          <MapPin size={10} />{u.region}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -192,7 +174,6 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Expanded projects */}
                 {activeUser === u.id && (
                   <div className="mt-4 pt-4 border-t border-white/5 space-y-2 fade-in">
                     <p className="text-xs opacity-40 mb-3">المشاريع:</p>
@@ -204,9 +185,7 @@ export default function AdminPage() {
                           <span className="text-sm">{p.name}</span>
                         </div>
                         <a href={`/project/${p.id}`} target="_blank" rel="noreferrer"
-                          className="text-xs opacity-40 hover:opacity-70">
-                          عرض ←
-                        </a>
+                          className="text-xs opacity-40 hover:opacity-70">عرض ←</a>
                       </div>
                     ))}
                     <div className="flex gap-3 mt-3 pt-3 border-t border-white/5">
