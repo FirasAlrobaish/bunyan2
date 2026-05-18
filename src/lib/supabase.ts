@@ -7,13 +7,13 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 export type Project = {
   id: string; user_id: string; name: string; icon: string
-  share_token: string; created_at: string
+  share_token: string; created_at: string; start_date?: string; end_date?: string; budget?: number; show_kpis?: boolean
 }
 export type Transaction = {
   id: string; project_id: string; type: 'INCOME' | 'EXPENSE'
   title: string; amount: number; category: string; date: string
   notes?: string; quantity?: number; unit_price?: number
-  receipt_url?: string; status?: string; created_at: string
+  receipt_url?: string; created_at: string
 }
 export type Category = {
   id: string; user_id: string; name: string
