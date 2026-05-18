@@ -153,6 +153,50 @@ export default function SharePage() {
           <div className="card !p-4 text-center"><Wallet size={18} className="mx-auto mb-2" style={{color:'#c9a96e'}}/><p className="text-xs opacity-40 mb-1">الرصيد</p><p className="font-black text-lg" style={{color:balance>=0?'#c9a96e':'#ff3b30'}}>{balance>=0?'+':''}{fmt(balance)}</p></div>
         </div>
 
+        {(project as any).show_kpis !== false && (() => {
+          const p = project as any
+          if (!p?.start_date || !p?.end_date || !p?.budget) return null
+          const start = new Date(p.start_date)
+          const end = new Date(p.end_date)
+          const today = new Date()
+          const totalDays = Math.ceil((end.getTime()-start.getTime())/(1000*60*60*24))
+          const elapsedDays = Math.max(0,Math.ceil((today.getTime()-start.getTime())/(1000*60*60*24)))
+          const remainingDays = Math.max(0,Math.ceil((end.getTime()-today.getTime())/(1000*60*60*24)))
+          const budget = parseFloat(p.budget)
+          const budgetUsed = approvedTxns.filter((t:any)=>t.type==="EXPENSE").reduce((s:number,t:any)=>s+t.amount,0)
+          const budgetPct = Math.min(100,(budgetUsed/budget)*100)
+          const timePct = Math.min(100,(elapsedDays/totalDays)*100)
+          const dailyRate = elapsedDays>0?budgetUsed/elapsedDays:0
+          const isOnTrack = budgetPct<=timePct+10
+          return (
+            <div className="card fade-in space-y-4">
+              <h3 className="font-bold opacity-60">مؤشرات الأداء</h3>
+              <div className="card !p-3 flex items-center gap-2" style={{borderColor:isOnTrack?"rgba(52,199,89,0.3)":"rgba(255,59,48,0.3)"}}>
+                <div className="w-2 h-2 rounded-full" style={{background:isOnTrack?"#34c759":"#ff3b30"}}/>
+                <p className="text-sm font-semibold">{isOnTrack?"✅ المشروع في المسار الصحيح":"⚠️ المشروع يحتاج مراجعة"}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="card !p-3 text-center"><p className="font-black text-lg" style={{color:"#007aff"}}>{totalDays}</p><p className="text-xs opacity-40">إجمالي الأيام</p></div>
+                <div className="card !p-3 text-center"><p className="font-black text-lg" style={{color:"#ff9500"}}>{elapsedDays}</p><p className="text-xs opacity-40">منقضية</p></div>
+                <div className="card !p-3 text-center"><p className="font-black text-lg" style={{color:remainingDays<7?"#ff3b30":"#34c759"}}>{remainingDays}</p><p className="text-xs opacity-40">متبقية</p></div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs opacity-60 mb-1"><span>تقدم الوقت</span><span>{timePct.toFixed(0)}%</span></div>
+                <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}><div className="h-full rounded-full" style={{width:`${timePct}%`,background:"linear-gradient(90deg,#007aff,#5ac8fa)"}}/></div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs opacity-60 mb-1"><span>استهلاك الميزانية</span><span>{budgetPct.toFixed(0)}%</span></div>
+                <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}><div className="h-full rounded-full" style={{width:`${budgetPct}%`,background:budgetPct>90?"linear-gradient(90deg,#ff3b30,#ff9500)":"linear-gradient(90deg,#c9a96e,#34c759)"}}/></div>
+                <div className="flex justify-between text-xs mt-1 opacity-40"><span>المصروف: <span className="text-red-400">{fmt(budgetUsed)}</span></span><span>الميزانية: <span style={{color:"#c9a96e"}}>{fmt(budget)}</span></span></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="card !p-3"><p className="text-xs opacity-40 mb-1">معدل الصرف اليومي</p><p className="font-black" style={{color:"#ff9500"}}>{fmt(Math.round(dailyRate))} ريال</p></div>
+                <div className="card !p-3"><p className="text-xs opacity-40 mb-1">المتبقي من الميزانية</p><p className="font-black" style={{color:budget-budgetUsed<0?"#ff3b30":"#34c759"}}>{budget-budgetUsed<0?"-":"+"}{fmt(Math.abs(budget-budgetUsed))} ريال</p></div>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* View tabs */}
         <div className="flex gap-1 p-1 rounded-xl w-fit" style={{background:'rgba(255,255,255,0.04)'}}>
           {([{key:'list',label:'السجل',Icon:Wallet},{key:'charts',label:'التقارير',Icon:BarChart2}] as const).map(({key,label,Icon}) => (
