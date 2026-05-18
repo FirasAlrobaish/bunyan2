@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/lib/supabase.ts","./src/pages/adminpage.tsx","./src/pages/authpage.tsx","./src/pages/dashboard.tsx","./src/pages/projectpage.tsx","./src/pages/sharepage.tsx"],"errors":true,"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/lib/supabase.ts","./src/pages/adminpage.tsx","./src/pages/authpage.tsx","./src/pages/dashboard.tsx","./src/pages/projectpage.tsx","./src/pages/sharepage.tsx"],"version":"5.9.3"}
