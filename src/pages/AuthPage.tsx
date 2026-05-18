@@ -1,11 +1,20 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { Building2, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Building2, Mail, Lock, Eye, EyeOff, User, Phone, MapPin } from 'lucide-react'
+
+const REGIONS = [
+  'الرياض', 'جدة', 'مكة المكرمة', 'المدينة المنورة', 'الدمام',
+  'الخبر', 'الطائف', 'تبوك', 'بريدة', 'خميس مشيط',
+  'أبها', 'نجران', 'الجبيل', 'حائل', 'الباحة', 'عرعر', 'سكاكا'
+]
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [region, setRegion] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -15,8 +24,23 @@ export default function AuthPage() {
     setError(''); setSuccess(''); setLoading(true)
     try {
       if (mode === 'register') {
-        const { error } = await supabase.auth.signUp({ email, password })
+        if (!fullName.trim() || !phone.trim() || !region) {
+          setError('يرجى تعبئة جميع الحقول')
+          setLoading(false)
+          return
+        }
+        const { data, error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
+
+        // Save profile
+        if (data.user) {
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            full_name: fullName.trim(),
+            phone: phone.trim(),
+            region
+          })
+        }
         setSuccess('تم إنشاء حسابك! تحقق من بريدك الإلكتروني.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -33,11 +57,8 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{
       background: 'radial-gradient(ellipse at top, #1a1d27 0%, #0f1117 70%)'
     }}>
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-5"
-          style={{ background: 'radial-gradient(circle, #c9a96e, transparent)' }} />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full opacity-5"
           style={{ background: 'radial-gradient(circle, #c9a96e, transparent)' }} />
       </div>
 
@@ -59,8 +80,7 @@ export default function AuthPage() {
               <button key={m} onClick={() => setMode(m)}
                 className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
                 style={mode === m ? {
-                  background: 'linear-gradient(135deg, #c9a96e, #a07d54)',
-                  color: '#0f1117'
+                  background: 'linear-gradient(135deg, #c9a96e, #a07d54)', color: '#0f1117'
                 } : { color: 'rgba(245,240,232,0.5)' }}>
                 {m === 'login' ? 'تسجيل الدخول' : 'حساب جديد'}
               </button>
@@ -68,8 +88,43 @@ export default function AuthPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Register fields */}
+            {mode === 'register' && (
+              <>
+                <div>
+                  <label className="text-xs opacity-50 mb-2 block">الاسم الكامل *</label>
+                  <div className="relative">
+                    <User size={16} className="absolute top-1/2 -translate-y-1/2 left-4 opacity-40" />
+                    <input value={fullName} onChange={e => setFullName(e.target.value)}
+                      className="input-field pl-10" placeholder="محمد أحمد العمري" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs opacity-50 mb-2 block">رقم الجوال *</label>
+                  <div className="relative">
+                    <Phone size={16} className="absolute top-1/2 -translate-y-1/2 left-4 opacity-40" />
+                    <input value={phone} onChange={e => setPhone(e.target.value)}
+                      className="input-field pl-10" placeholder="05xxxxxxxx" type="tel" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs opacity-50 mb-2 block">المنطقة *</label>
+                  <div className="relative">
+                    <MapPin size={16} className="absolute top-1/2 -translate-y-1/2 left-4 opacity-40" />
+                    <select value={region} onChange={e => setRegion(e.target.value)}
+                      className="input-field pl-10">
+                      <option value="">اختر المنطقة</option>
+                      {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
+
             <div>
-              <label className="text-xs opacity-50 mb-2 block">البريد الإلكتروني</label>
+              <label className="text-xs opacity-50 mb-2 block">البريد الإلكتروني *</label>
               <div className="relative">
                 <Mail size={16} className="absolute top-1/2 -translate-y-1/2 left-4 opacity-40" />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -79,7 +134,7 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label className="text-xs opacity-50 mb-2 block">كلمة المرور</label>
+              <label className="text-xs opacity-50 mb-2 block">كلمة المرور *</label>
               <div className="relative">
                 <Lock size={16} className="absolute top-1/2 -translate-y-1/2 left-10 opacity-40" />
                 <input type={showPass ? 'text' : 'password'} value={password}
@@ -94,17 +149,14 @@ export default function AuthPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-red-400 bg-red-400/10 rounded-xl p-3 text-center">
-                {error}
-              </div>
+              <div className="text-sm text-red-400 bg-red-400/10 rounded-xl p-3 text-center">{error}</div>
             )}
             {success && (
-              <div className="text-sm text-green-400 bg-green-400/10 rounded-xl p-3 text-center">
-                {success}
-              </div>
+              <div className="text-sm text-green-400 bg-green-400/10 rounded-xl p-3 text-center">{success}</div>
             )}
 
-            <button onClick={handleSubmit} disabled={loading || !email || !password}
+            <button onClick={handleSubmit}
+              disabled={loading || !email || !password || (mode === 'register' && (!fullName || !phone || !region))}
               className="btn-primary w-full mt-2 disabled:opacity-40 disabled:cursor-not-allowed">
               {loading ? 'جاري...' : mode === 'login' ? 'دخول' : 'إنشاء حساب'}
             </button>
