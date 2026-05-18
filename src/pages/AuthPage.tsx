@@ -105,7 +105,7 @@ export default function AuthPage() {
                   <div className="relative">
                     <Phone size={16} className="absolute top-1/2 -translate-y-1/2 left-4 opacity-40" />
                     <input value={phone} onChange={e => setPhone(e.target.value)}
-                      className="input-field pl-10" placeholder="05xxxxxxxx" type="tel" />
+                      className="input-field pl-10" placeholder="05xxxxxxxx" type="tel" minLength={10} maxLength={10} />
                   </div>
                 </div>
 
