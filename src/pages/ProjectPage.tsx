@@ -71,16 +71,15 @@ export default function ProjectPage() {
     setShareMsg('تم نسخ الرابط!'); setTimeout(() => setShareMsg(''), 2000)
   }
 
-  const approvedTxns = transactions.filter(t => !(t as any).status || (t as any).status === "approved")
-const filtered = approvedTxns.filter(t => {
+  const filtered = transactions.filter(t => {
     if (activeTab !== 'all' && t.type !== activeTab) return false
     if (filterCat && t.category !== filterCat) return false
     if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !t.category?.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
-  const income = approvedTxns.filter(t => t.type==='INCOME').reduce((s,t) => s+t.amount, 0)
-  const expense = approvedTxns.filter(t => t.type==='EXPENSE').reduce((s,t) => s+t.amount, 0)
+  const income = transactions.filter(t => t.type==='INCOME').reduce((s,t) => s+t.amount, 0)
+  const expense = transactions.filter(t => t.type==='EXPENSE').reduce((s,t) => s+t.amount, 0)
   const balance = income - expense
   const fmt = (n: number) => n.toLocaleString('ar-SA')
 
@@ -187,7 +186,7 @@ const filtered = approvedTxns.filter(t => {
                 <div key={t.id} className="flex items-center justify-between gap-3 p-3 rounded-xl" style={{background:'rgba(255,255,255,0.04)'}}>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{t.title}</p>
-                    <p className="text-xs opacity-40 mt-0.5">{t.category} · {t.date}</p>{(t as any).receipt_url && <a href={(t as any).receipt_url} target="_blank" rel="noreferrer" className="text-xs underline opacity-40 hover:opacity-70">📎 الإيصال</a>}
+                    <p className="text-xs opacity-40 mt-0.5">{t.category} · {t.date}</p>
                   </div>
                   <p className="font-black text-green-400">+{fmt(t.amount)}</p>
                   <div className="flex gap-2">
