@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase, type Project, type Transaction } from '../lib/supabase'
-import { Building2, TrendingUp, TrendingDown, Wallet, Image, Plus, X, Check, Upload, Clock, CheckCircle, XCircle, BarChart2, PieChart } from 'lucide-react'
-import { format } from 'date-fns'
+import { Building2, TrendingUp, TrendingDown, Wallet, Image, Plus, X, Check, Upload, Clock, CheckCircle, XCircle, BarChart2, PieChart, Activity, Calendar, Target } from 'lucide-react'
+import { format, differenceInDays } from 'date-fns'
 import { ar } from 'date-fns/locale'
 
 const COLORS = ['#c9a96e','#34c759','#ff3b30','#007aff','#ff9500','#af52de','#5ac8fa','#ff2d55']
