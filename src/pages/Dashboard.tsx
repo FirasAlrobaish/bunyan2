@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, type Project } from '../lib/supabase'
-import { Plus, Building2, LogOut, ChevronLeft, Home, Wrench, TreePine, Warehouse } from 'lucide-react'
+import { Plus, Building2, LogOut, ChevronLeft, Home, Wrench, TreePine, Warehouse, Star, Trash2 } from 'lucide-react'
 
 const ICONS: Record<string, any> = {
   home: Home, building: Building2, wrench: Wrench, tree: TreePine, warehouse: Warehouse
@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [newIcon, setNewIcon] = useState('home')
   const [creating, setCreating] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function Dashboard() {
   const fetchProjects = async () => {
     setLoading(true)
     const { data: projectsData } = await supabase
-      .from('projects').select('*').order('created_at', { ascending: false })
+      .from('projects').select('*').order('starred', { ascending: false }).order('created_at', { ascending: false })
 
     if (!projectsData) { setLoading(false); return }
 
@@ -56,6 +57,26 @@ export default function Dashboard() {
     })
     if (!error) { setShowNew(false); setNewName(''); fetchProjects() }
     setCreating(false)
+  }
+
+  const deleteProject = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    if (!confirm('هل أنت متأكد من حذف هذا المشروع؟ سيتم حذف جميع البيانات المرتبطة به.')) return
+    setDeletingId(id)
+    await supabase.from('transactions').delete().eq('project_id', id)
+    await supabase.from('projects').delete().eq('id', id)
+    setProjects(prev => prev.filter(p => p.id !== id))
+    setDeletingId(null)
+  }
+
+  const toggleStar = async (e: React.MouseEvent, p: ProjectWithStats) => {
+    e.stopPropagation()
+    const newVal = !(p as any).starred
+    await supabase.from('projects').update({ starred: newVal }).eq('id', p.id)
+    setProjects(prev => {
+      const updated = prev.map(x => x.id === p.id ? { ...x, starred: newVal } : x)
+      return updated.sort((a, b) => ((b as any).starred ? 1 : 0) - ((a as any).starred ? 1 : 0))
+    })
   }
 
   const logout = async () => { await supabase.auth.signOut() }
@@ -132,9 +153,10 @@ export default function Dashboard() {
               const status = getStatus(p)
               const budgetPct = getBudgetPct(p)
               return (
-                <button key={p.id} onClick={() => navigate(`/project/${p.id}`)}
-                  className="card text-right hover:border-yellow-600/30 transition-all group fade-in"
-                  style={{ animationDelay: `${i * 0.05}s` }}>
+                <div key={p.id} className="relative group">
+                  <button onClick={() => navigate(`/project/${p.id}`)}
+                    className="card w-full text-right hover:border-yellow-600/30 transition-all fade-in"
+                    style={{ animationDelay: `${i * 0.05}s`, borderColor: (p as any).starred ? 'rgba(201,169,110,0.4)' : undefined }}>
 
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -177,7 +199,21 @@ export default function Dashboard() {
                       </p>
                     </div>
                   )}
-                </button>
+                  </button>
+
+                  {/* Action buttons */}
+                  <div className="absolute top-3 left-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={e => toggleStar(e, p)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                      style={{ background: (p as any).starred ? 'rgba(201,169,110,0.2)' : 'rgba(255,255,255,0.06)' }}>
+                      <Star size={14} fill={(p as any).starred ? '#c9a96e' : 'none'} style={{ color: '#c9a96e' }} />
+                    </button>
+                    <button onClick={e => deleteProject(e, p.id)} disabled={deletingId === p.id}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20">
+                      <Trash2 size={14} style={{ color: '#ff4444' }} />
+                    </button>
+                  </div>
+                </div>
               )
             })}
           </div>
