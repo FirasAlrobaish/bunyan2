@@ -8,8 +8,13 @@ const ICONS: Record<string, any> = {
 }
 const ICON_LIST = Object.keys(ICONS)
 
+type ProjectWithStats = Project & {
+  totalExpense: number
+  totalIncome: number
+}
+
 export default function Dashboard() {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ProjectWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [showNew, setShowNew] = useState(false)
   const [newName, setNewName] = useState('')
@@ -25,8 +30,20 @@ export default function Dashboard() {
 
   const fetchProjects = async () => {
     setLoading(true)
-    const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
-    setProjects(data || [])
+    const { data: projectsData } = await supabase
+      .from('projects').select('*').order('created_at', { ascending: false })
+
+    if (!projectsData) { setLoading(false); return }
+
+    const projectsWithStats = await Promise.all(projectsData.map(async (p) => {
+      const { data: txs } = await supabase
+        .from('transactions').select('amount, type').eq('project_id', p.id)
+      const totalExpense = txs?.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0) || 0
+      const totalIncome = txs?.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0) || 0
+      return { ...p, totalExpense, totalIncome }
+    }))
+
+    setProjects(projectsWithStats)
     setLoading(false)
   }
 
@@ -41,17 +58,31 @@ export default function Dashboard() {
     setCreating(false)
   }
 
-  const logout = async () => {
-    await supabase.auth.signOut()
+  const logout = async () => { await supabase.auth.signOut() }
+
+  const getStatus = (p: ProjectWithStats) => {
+    if (!p.start_date || !p.end_date) return null
+    const now = new Date()
+    const start = new Date(p.start_date)
+    const end = new Date(p.end_date)
+    const total = end.getTime() - start.getTime()
+    const elapsed = now.getTime() - start.getTime()
+    const timeProgress = Math.min(Math.max(elapsed / total, 0), 1)
+    const budgetProgress = p.budget ? p.totalExpense / p.budget : 0
+
+    if (now > end) return { label: 'منتهي', color: '#888' }
+    if (budgetProgress > timeProgress + 0.1) return { label: 'متأخر', color: '#ff4444' }
+    if (budgetProgress < timeProgress - 0.1) return { label: 'متقدم', color: '#00c853' }
+    return { label: 'طبيعي', color: '#c9a96e' }
   }
 
-  const totalStats = (p: Project & { income?: number; expense?: number }) => ({
-    income: p.income || 0, expense: p.expense || 0
-  })
+  const getBudgetPct = (p: ProjectWithStats) => {
+    if (!p.budget || p.budget === 0) return null
+    return Math.min((p.totalExpense / p.budget) * 100, 100)
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#0f1117' }}>
-      {/* Header */}
       <header className="sticky top-0 z-50" style={{
         background: 'rgba(15,17,23,0.8)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(201,169,110,0.1)'
@@ -67,32 +98,26 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <span className="text-xs opacity-40 hidden sm:block">{user?.email}</span>
             <button onClick={logout} className="btn-ghost !py-2 !px-3 flex items-center gap-2 text-sm">
-              <LogOut size={14} />
-              خروج
+              <LogOut size={14} /> خروج
             </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* Title row */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-black">مشاريعي</h2>
             <p className="text-sm opacity-40 mt-1">{projects.length} مشروع</p>
           </div>
           <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2">
-            <Plus size={18} />
-            مشروع جديد
+            <Plus size={18} /> مشروع جديد
           </button>
         </div>
 
-        {/* Projects Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1,2,3].map(i => (
-              <div key={i} className="h-44 rounded-2xl shimmer" />
-            ))}
+            {[1,2,3].map(i => <div key={i} className="h-52 rounded-2xl shimmer" />)}
           </div>
         ) : projects.length === 0 ? (
           <div className="text-center py-24 opacity-40">
@@ -104,21 +129,54 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((p, i) => {
               const Icon = ICONS[p.icon] || Home
+              const status = getStatus(p)
+              const budgetPct = getBudgetPct(p)
               return (
                 <button key={p.id} onClick={() => navigate(`/project/${p.id}`)}
                   className="card text-right hover:border-yellow-600/30 transition-all group fade-in"
                   style={{ animationDelay: `${i * 0.05}s` }}>
-                  <div className="flex items-start justify-between mb-6">
+
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center"
                       style={{ background: 'linear-gradient(135deg, #c9a96e22, #c9a96e44)' }}>
                       <Icon size={22} style={{ color: '#c9a96e' }} />
                     </div>
-                    <ChevronLeft size={16} className="opacity-20 group-hover:opacity-60 transition-opacity mt-1" />
+                    <div className="flex items-center gap-2">
+                      {status && (
+                        <span className="text-xs font-bold px-2 py-1 rounded-full"
+                          style={{ background: `${status.color}22`, color: status.color }}>
+                          {status.label}
+                        </span>
+                      )}
+                      <ChevronLeft size={16} className="opacity-20 group-hover:opacity-60 transition-opacity mt-1" />
+                    </div>
                   </div>
+
+                  {/* Name */}
                   <h3 className="font-bold text-lg mb-1">{p.name}</h3>
-                  <p className="text-xs opacity-30">
+                  <p className="text-xs opacity-30 mb-4">
                     {new Date(p.created_at).toLocaleDateString('ar-SA')}
                   </p>
+
+                  {/* Budget bar */}
+                  {budgetPct !== null && (
+                    <div className="mt-auto">
+                      <div className="flex justify-between text-xs opacity-50 mb-1">
+                        <span>المصروف</span>
+                        <span>{budgetPct.toFixed(0)}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                        <div className="h-1.5 rounded-full transition-all" style={{
+                          width: `${budgetPct}%`,
+                          background: budgetPct > 90 ? '#ff4444' : budgetPct > 70 ? '#ffab00' : '#00c853'
+                        }} />
+                      </div>
+                      <p className="text-xs opacity-40 mt-2">
+                        {p.totalExpense.toLocaleString('ar-SA')} / {p.budget?.toLocaleString('ar-SA')} ر.س
+                      </p>
+                    </div>
+                  )}
                 </button>
               )
             })}
@@ -126,7 +184,7 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* New Project Modal */}
+      {/* Modal */}
       {showNew && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
