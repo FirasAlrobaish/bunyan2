@@ -228,6 +228,22 @@ export default function ProjectPage() {
           <div className="card !p-4 text-center"><Wallet size={18} className="mx-auto mb-2" style={{color:'#c9a96e'}}/><p className="text-xs opacity-40 mb-1">الرصيد</p><p className="font-black text-lg" style={{color:balance>=0?'#c9a96e':'#ff3b30'}}>{balance>=0?'+':''}{fmt(balance)}</p></div>
         </div>
 
+        {/* Warning: expense > income */}
+        {expense > income && income > 0 && (
+          <div className="fade-in flex items-start gap-3 p-4 rounded-2xl"
+            style={{ background: 'rgba(255,59,48,0.08)', border: '1px solid rgba(255,59,48,0.25)' }}>
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="font-bold text-sm" style={{ color: '#ff3b30' }}>
+                تنبيه: المصاريف تجاوزت الإيرادات
+              </p>
+              <p className="text-xs opacity-60 mt-1">
+                المصاريف أعلى من الإيرادات بمقدار {fmt(expense - income)} ريال — يُنصح بمراجعة المالك لإجراء الدفعات اللازمة.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* View tabs */}
         <div className="flex gap-1 p-1 rounded-xl w-fit flex-wrap" style={{background:'rgba(255,255,255,0.04)'}}>
           {([
