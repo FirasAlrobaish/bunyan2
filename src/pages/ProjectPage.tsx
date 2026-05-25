@@ -108,6 +108,7 @@ export default function ProjectPage() {
     { label: 'دولار أمريكي', symbol: '$' },
     { label: 'يورو', symbol: '€' },
     { label: 'جنيه مصري', symbol: 'ج.م' },
+    { label: 'جنيه سوداني', symbol: 'ج.س' },
     { label: 'درهم إماراتي', symbol: 'د.إ' },
     { label: 'دينار كويتي', symbol: 'د.ك' },
     { label: 'ريال قطري', symbol: 'ر.ق' },
