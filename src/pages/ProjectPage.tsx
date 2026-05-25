@@ -60,6 +60,7 @@ export default function ProjectPage() {
   const [showKpiForm, setShowKpiForm] = useState(false)
   const [kpiForm, setKpiForm] = useState({ start_date:'', end_date:'', budget:'', show_kpis: true })
   const [savingKpi, setSavingKpi] = useState(false)
+  const [currency, setCurrency] = useState<string>('ر.س')
 
   useEffect(() => { fetchAll() }, [id])
 
@@ -100,7 +101,18 @@ export default function ProjectPage() {
   const income = approvedTxns.filter(t => t.type==='INCOME').reduce((s,t) => s+t.amount, 0)
   const expense = approvedTxns.filter(t => t.type==='EXPENSE').reduce((s,t) => s+t.amount, 0)
   const balance = income - expense
-  const fmt = (n: number) => n.toLocaleString('ar-SA')
+  const fmt = (n: number) => `${n.toLocaleString('ar-SA')} ${currency}`
+
+  const CURRENCIES = [
+    { label: 'ريال سعودي', symbol: 'ر.س' },
+    { label: 'دولار أمريكي', symbol: '$' },
+    { label: 'يورو', symbol: '€' },
+    { label: 'جنيه مصري', symbol: 'ج.م' },
+    { label: 'درهم إماراتي', symbol: 'د.إ' },
+    { label: 'دينار كويتي', symbol: 'د.ك' },
+    { label: 'ريال قطري', symbol: 'ر.ق' },
+    { label: 'جنيه استرليني', symbol: '£' },
+  ]
 
   const byCat = (type: 'INCOME'|'EXPENSE') => Object.entries(
     approvedTxns.filter(t => t.type===type).reduce((acc,t) => { const k=t.category||'أخرى'; acc[k]=(acc[k]||0)+t.amount; return acc }, {} as Record<string,number>)
@@ -213,6 +225,10 @@ export default function ProjectPage() {
             <h1 className="font-black text-lg">{project.name}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <select value={currency} onChange={e => setCurrency(e.target.value)}
+              className="btn-ghost !py-2 !px-3 text-xs" style={{background:'transparent', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'10px', color:'inherit', cursor:'pointer'}}>
+              {CURRENCIES.map(c => <option key={c.symbol} value={c.symbol}>{c.symbol} — {c.label}</option>)}
+            </select>
             <button onClick={generatePDF} disabled={generatingPDF} className="btn-ghost !py-2 !px-3 flex items-center gap-1.5 text-xs disabled:opacity-40"><FileText size={14}/>{generatingPDF?'جاري...':'تقرير'}</button>
             <button onClick={() => navigate(`/share/${project.share_token}`)} className="btn-ghost !py-2 !px-3 flex items-center gap-1.5 text-xs"><Eye size={14}/>معاينة</button>
             <button onClick={handleShare} className="btn-ghost !py-2 !px-3 flex items-center gap-1.5 text-xs"><Share2 size={14}/>{shareMsg||'مشاركة'}</button>
