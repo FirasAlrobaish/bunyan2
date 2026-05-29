@@ -1,0 +1,18 @@
+<svg width="680" height="680" viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg">
+  <rect width="680" height="680" rx="120" fill="#3b1f0a"/>
+  <rect x="140" y="440" width="400" height="30" rx="6" fill="#f5c200"/>
+  <rect x="240" y="220" width="200" height="220" rx="8" fill="#6b3510"/>
+  <rect x="140" y="300" width="110" height="140" rx="8" fill="#6b3510"/>
+  <rect x="430" y="300" width="110" height="140" rx="8" fill="#6b3510"/>
+  <polygon points="340,120 200,225 480,225" fill="#f5c200"/>
+  <rect x="270" y="250" width="50" height="50" rx="4" fill="#f5c200" opacity="0.9"/>
+  <rect x="360" y="250" width="50" height="50" rx="4" fill="#f5c200" opacity="0.9"/>
+  <rect x="270" y="330" width="50" height="50" rx="4" fill="#f5c200" opacity="0.9"/>
+  <rect x="360" y="330" width="50" height="50" rx="4" fill="#f5c200" opacity="0.9"/>
+  <rect x="300" y="380" width="80" height="80" rx="6" fill="#f5c200"/>
+  <rect x="160" y="330" width="40" height="40" rx="4" fill="#f5c200" opacity="0.9"/>
+  <rect x="215" y="330" width="40" height="40" rx="4" fill="#f5c200" opacity="0.9"/>
+  <rect x="425" y="330" width="40" height="40" rx="4" fill="#f5c200" opacity="0.9"/>
+  <rect x="480" y="330" width="40" height="40" rx="4" fill="#f5c200" opacity="0.9"/>
+  <text x="340" y="530" font-family="Tajawal, Arial" font-size="64" font-weight="700" fill="#f5c200" text-anchor="middle">بنيان</text>
+</svg>
