@@ -4,6 +4,8 @@ import { supabase, type Project, type Transaction, type Category } from '../lib/
 import { ArrowRight, Plus, Share2, TrendingUp, TrendingDown, Wallet, Search, Trash2, Image, X, Check, Upload, Eye, Tag, BarChart2, FileText, PieChart, Edit2, Calendar, Target, Clock, Activity, EyeOff } from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
 import { ar } from 'date-fns/locale'
+import VoiceInput from '../components/VoiceInput'
+import PriceHint from '../components/PriceHint'
 
 const DEFAULT_EXPENSE_CATS = ['مواد بناء', 'عمالة', 'معدات', 'كهرباء وسباكة', 'تشطيب', 'أخرى']
 const DEFAULT_INCOME_CATS = ['دفعة مقدمة', 'دفعة أولى', 'دفعة ثانية', 'دفعة نهائية', 'أخرى']
@@ -377,85 +379,103 @@ export default function ProjectPage() {
               {isOwner && <p className="text-sm mt-2">اضغط "إعداد KPIs" لإضافة تواريخ وميزانية المشروع</p>}
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* Status */}
-              <div className="card !p-4" style={{borderColor: kpi.isOnTrack ? 'rgba(52,199,89,0.3)' : 'rgba(255,59,48,0.3)'}}>
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full animate-pulse" style={{background: kpi.isOnTrack ? '#34c759' : '#ff3b30'}}/>
-                  <p className="font-bold">{kpi.isOnTrack ? '✅ المشروع في المسار الصحيح' : '⚠️ المشروع يحتاج مراجعة'}</p>
-                </div>
+            <div className="space-y-3">
+
+              {/* Status bar */}
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{
+                background: kpi.isOnTrack ? 'rgba(52,199,89,0.08)' : 'rgba(255,59,48,0.08)',
+                border: `1px solid ${kpi.isOnTrack ? 'rgba(52,199,89,0.25)' : 'rgba(255,59,48,0.25)'}`
+              }}>
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 animate-pulse" style={{background: kpi.isOnTrack ? '#34c759' : '#ff3b30'}}/>
+                <p className="font-bold text-sm flex-1">{kpi.isOnTrack ? 'المشروع في المسار الصحيح' : 'المشروع يحتاج مراجعة'}</p>
+                <span className="text-xs opacity-50">{format(kpi.start,'d MMM',{locale:ar})} ← {format(kpi.end,'d MMM yyyy',{locale:ar})}</span>
               </div>
 
-              {/* Time KPIs */}
+              {/* Time cards */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="card !p-4 text-center">
-                  <Calendar size={18} className="mx-auto mb-2" style={{color:'#007aff'}}/>
-                  <p className="font-black text-xl" style={{color:'#007aff'}}>{kpi.totalDays}</p>
-                  <p className="text-xs opacity-40 mt-1">إجمالي الأيام</p>
+                <div className="card !p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Target size={14} style={{color:'#34c759'}}/>
+                    <span className="text-xs opacity-40">أيام متبقية</span>
+                  </div>
+                  <p className="font-black text-2xl" style={{color: kpi.remainingDays < 14 ? '#ff3b30' : '#34c759'}}>{kpi.remainingDays}</p>
+                  <p className="text-xs opacity-30 mt-1">يوم</p>
                 </div>
-                <div className="card !p-4 text-center">
-                  <Clock size={18} className="mx-auto mb-2" style={{color:'#ff9500'}}/>
-                  <p className="font-black text-xl" style={{color:'#ff9500'}}>{kpi.elapsedDays}</p>
-                  <p className="text-xs opacity-40 mt-1">أيام منقضية</p>
+                <div className="card !p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock size={14} style={{color:'#c9a96e'}}/>
+                    <span className="text-xs opacity-40">أيام منقضية</span>
+                  </div>
+                  <p className="font-black text-2xl" style={{color:'#c9a96e'}}>{kpi.elapsedDays}</p>
+                  <p className="text-xs opacity-30 mt-1">من {kpi.totalDays} يوم</p>
                 </div>
-                <div className="card !p-4 text-center">
-                  <Target size={18} className="mx-auto mb-2" style={{color:'#34c759'}}/>
-                  <p className="font-black text-xl" style={{color: kpi.remainingDays < 7 ? '#ff3b30' : '#34c759'}}>{kpi.remainingDays}</p>
-                  <p className="text-xs opacity-40 mt-1">أيام متبقية</p>
+                <div className="card !p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Activity size={14} style={{color:'#007aff'}}/>
+                    <span className="text-xs opacity-40">معدل يومي</span>
+                  </div>
+                  <p className="font-black text-xl" style={{color:'#007aff'}}>{Math.round(kpi.dailyRate).toLocaleString('ar-SA')}</p>
+                  <p className="text-xs opacity-30 mt-1">{currency}/يوم</p>
                 </div>
               </div>
 
               {/* Time progress */}
-              <div className="card">
-                <div className="flex justify-between text-xs opacity-60 mb-2">
-                  <span>تقدم الوقت</span>
-                  <span>{kpi.timePct.toFixed(0)}%</span>
+              <div className="card !p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs opacity-50 flex items-center gap-1.5"><Calendar size={12}/>تقدم الوقت</span>
+                  <span className="text-sm font-bold">{kpi.timePct.toFixed(0)}%</span>
                 </div>
-                <div className="h-3 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
-                  <div className="h-full rounded-full transition-all" style={{width:`${kpi.timePct}%`, background:'linear-gradient(90deg,#007aff,#5ac8fa)'}}/>
+                <div className="h-2 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
+                  <div className="h-full rounded-full transition-all" style={{width:`${kpi.timePct}%`, background:'#007aff'}}/>
                 </div>
-                <div className="flex justify-between text-xs opacity-40 mt-2">
+                <div className="flex justify-between text-xs opacity-30 mt-2">
                   <span>{format(kpi.start,'d MMM yyyy',{locale:ar})}</span>
                   <span>{format(kpi.end,'d MMM yyyy',{locale:ar})}</span>
                 </div>
               </div>
 
-              {/* Budget KPIs */}
-              <div className="card">
-                <div className="flex justify-between text-xs opacity-60 mb-2">
-                  <span>استهلاك الميزانية</span>
-                  <span>{kpi.budgetPct.toFixed(0)}%</span>
+              {/* Budget progress */}
+              <div className="card !p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs opacity-50 flex items-center gap-1.5"><Wallet size={12}/>استهلاك الميزانية</span>
+                  <span className="text-sm font-bold" style={{color: kpi.budgetPct > 90 ? '#ff3b30' : kpi.budgetPct > 70 ? '#ff9500' : '#34c759'}}>{kpi.budgetPct.toFixed(0)}%</span>
                 </div>
-                <div className="h-3 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
-                  <div className="h-full rounded-full transition-all" style={{width:`${kpi.budgetPct}%`, background: kpi.budgetPct > 90 ? 'linear-gradient(90deg,#ff3b30,#ff9500)' : 'linear-gradient(90deg,#c9a96e,#34c759)'}}/>
+                <div className="h-2 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.06)'}}>
+                  <div className="h-full rounded-full transition-all" style={{
+                    width:`${kpi.budgetPct}%`,
+                    background: kpi.budgetPct > 90 ? '#ff3b30' : kpi.budgetPct > 70 ? '#ff9500' : '#34c759'
+                  }}/>
                 </div>
-                <div className="flex justify-between text-xs mt-3">
-                  <span className="opacity-40">المصروف: <span className="text-red-400 font-semibold">{fmt(kpi.budgetUsed)}</span></span>
+                <div className="flex justify-between text-xs mt-2">
+                  <span className="opacity-40">مصروف: <span className="text-red-400 font-semibold">{fmt(kpi.budgetUsed)}</span></span>
                   <span className="opacity-40">الميزانية: <span style={{color:'#c9a96e'}} className="font-semibold">{fmt(kpi.budget)}</span></span>
                 </div>
               </div>
 
-              {/* Financial KPIs */}
+              {/* Bottom row: expected cost + remaining */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="card !p-4">
-                  <p className="text-xs opacity-40 mb-1">معدل الصرف اليومي</p>
-                  <p className="font-black text-lg" style={{color:'#ff9500'}}>{fmt(Math.round(kpi.dailyRate))}</p>
-                  <p className="text-xs opacity-40">ريال/يوم</p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp size={14} style={{color: kpi.expectedExpense > kpi.budget ? '#ff3b30' : '#34c759'}}/>
+                    <span className="text-xs opacity-40">التكلفة المتوقعة</span>
+                  </div>
+                  <p className="font-black text-lg" style={{color: kpi.expectedExpense > kpi.budget ? '#ff3b30' : '#34c759'}}>
+                    {Math.round(kpi.expectedExpense).toLocaleString('ar-SA')}
+                  </p>
+                  <p className="text-xs opacity-30 mt-1">{currency}</p>
                 </div>
-                <div className="card !p-4">
-                  <p className="text-xs opacity-40 mb-1">التكلفة المتوقعة الكلية</p>
-                  <p className="font-black text-lg" style={{color: kpi.expectedExpense > kpi.budget ? '#ff3b30' : '#34c759'}}>{fmt(Math.round(kpi.expectedExpense))}</p>
-                  <p className="text-xs opacity-40">ريال</p>
+                <div className="card !p-4" style={{borderColor: kpi.budget - kpi.budgetUsed < 0 ? 'rgba(255,59,48,0.3)' : 'rgba(52,199,89,0.2)'}}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Wallet size={14} style={{color: kpi.budget - kpi.budgetUsed < 0 ? '#ff3b30' : '#34c759'}}/>
+                    <span className="text-xs opacity-40">المتبقي من الميزانية</span>
+                  </div>
+                  <p className="font-black text-lg" style={{color: kpi.budget - kpi.budgetUsed < 0 ? '#ff3b30' : '#34c759'}}>
+                    {kpi.budget - kpi.budgetUsed < 0 ? '-' : '+'}{Math.abs(kpi.budget - kpi.budgetUsed).toLocaleString('ar-SA')}
+                  </p>
+                  <p className="text-xs opacity-30 mt-1">{currency}</p>
                 </div>
               </div>
 
-              {/* Remaining budget */}
-              <div className="card !p-4" style={{borderColor: kpi.budget - kpi.budgetUsed < 0 ? 'rgba(255,59,48,0.3)' : 'rgba(52,199,89,0.2)'}}>
-                <p className="text-xs opacity-40 mb-1">المتبقي من الميزانية</p>
-                <p className="font-black text-2xl" style={{color: kpi.budget - kpi.budgetUsed < 0 ? '#ff3b30' : '#34c759'}}>
-                  {kpi.budget - kpi.budgetUsed < 0 ? '-' : '+'}{fmt(Math.abs(kpi.budget - kpi.budgetUsed))} ريال
-                </p>
-              </div>
             </div>
           )}
         </div>}
@@ -499,12 +519,26 @@ export default function ProjectPage() {
             <div className="flex gap-2 p-1 rounded-xl" style={{background:'rgba(255,255,255,0.04)'}}>
               {(['EXPENSE','INCOME'] as const).map(t=><button key={t} onClick={()=>setForm(f=>({...f,type:t,category:''}))} className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all" style={form.type===t?{background:t==='INCOME'?'rgba(52,199,89,0.2)':'rgba(255,59,48,0.2)',color:t==='INCOME'?'#34c759':'#ff3b30',border:`1px solid ${t==='INCOME'?'rgba(52,199,89,0.4)':'rgba(255,59,48,0.4)'}`}:{color:'rgba(245,240,232,0.4)'}}>{t==='INCOME'?'+ المدفوع':'- مصروف'}</button>)}
             </div>
+            {!editingTx && <VoiceInput
+              categories={allCats}
+              onResult={tx => setForm(f => ({
+                ...f,
+                type: tx.type || f.type,
+                title: tx.title ?? f.title,
+                amount: tx.amount ? String(tx.amount) : f.amount,
+                quantity: tx.quantity ? String(tx.quantity) : f.quantity,
+                unit_price: tx.unit_price ? String(tx.unit_price) : f.unit_price,
+                category: tx.category && allCats.includes(tx.category) ? tx.category : f.category,
+              }))}
+            />}
             <div><label className="text-xs opacity-50 mb-2 block">البيان *</label><input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} className="input-field" placeholder="مثال: شراء أسمنت" autoFocus/></div>
             <div className="grid grid-cols-2 gap-3">
               {form.type==='EXPENSE' && <div><label className="text-xs opacity-50 mb-2 block">الكمية</label><input type="number" value={form.quantity} onChange={e=>{const q=e.target.value;const amt=q&&form.unit_price?String(parseFloat(q)*parseFloat(form.unit_price)):form.amount;setForm(f=>({...f,quantity:q,amount:amt}))}} className="input-field" placeholder="0"/></div>}
               {form.type==='EXPENSE' && <div><label className="text-xs opacity-50 mb-2 block">سعر الوحدة</label><input type="number" value={form.unit_price} onChange={e=>{const p=e.target.value;const amt=form.quantity&&p?String(parseFloat(form.quantity)*parseFloat(p)):form.amount;setForm(f=>({...f,unit_price:p,amount:amt}))}} className="input-field" placeholder="0"/></div>}
             </div>
-            <div><label className="text-xs opacity-50 mb-2 block">المبلغ الإجمالي (ريال) *</label><input type="number" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} className="input-field" placeholder="0"/></div>
+            <div><label className="text-xs opacity-50 mb-2 block">المبلغ الإجمالي (ريال) *</label><input type="number" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} className="input-field" placeholder="0"/>
+              {form.type==='EXPENSE' && <PriceHint description={form.title} amount={parseFloat(form.amount)||0} quantity={form.quantity?parseFloat(form.quantity):undefined}/>}
+            </div>
             <div><label className="text-xs opacity-50 mb-2 block">الفئة</label><select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))} className="input-field"><option value="">اختر فئة</option>{allCats.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
             <div><label className="text-xs opacity-50 mb-2 block">التاريخ *</label><input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} className="input-field"/></div>
             <div><label className="text-xs opacity-50 mb-2 block">ملاحظات</label><textarea value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} className="input-field resize-none" rows={2} placeholder="اختياري..."/></div>

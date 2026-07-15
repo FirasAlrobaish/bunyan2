@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard'
 import ProjectPage from './pages/ProjectPage'
 import SharePage from './pages/SharePage'
 import AdminPage from './pages/AdminPage'
+import PriceIndexPage from './pages/PriceIndexPage'
+import ClientPortal from './pages/ClientPortal'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -55,6 +57,8 @@ export default function App() {
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/project/:id" element={<ProtectedRoute><ProjectPage /></ProtectedRoute>} />
       <Route path="/share/:token" element={<SharePage />} />
+      <Route path="/prices" element={<ProtectedRoute><PriceIndexPage /></ProtectedRoute>} />
+      <Route path="/story/:shareToken" element={<ClientPortal />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
