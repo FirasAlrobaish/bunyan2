@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, type Project } from '../lib/supabase'
-import { Plus, Building2, LogOut, ChevronLeft, Home, Wrench, TreePine, Warehouse, Star, Trash2 } from 'lucide-react'
+import { Plus, Building2, LogOut, ChevronLeft, Home, Wrench, TreePine, Warehouse, Star, Trash2, BarChart2 } from 'lucide-react'
 
 const ICONS: Record<string, any> = {
   home: Home, building: Building2, wrench: Wrench, tree: TreePine, warehouse: Warehouse
@@ -118,6 +118,9 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs opacity-40 hidden sm:block">{user?.email}</span>
+            <button onClick={() => navigate('/prices')} className="btn-ghost !py-2 !px-3 flex items-center gap-2 text-sm">
+              <BarChart2 size={14} style={{ color: '#c9a96e' }} /> الأسعار
+            </button>
             <button onClick={logout} className="btn-ghost !py-2 !px-3 flex items-center gap-2 text-sm">
               <LogOut size={14} /> خروج
             </button>

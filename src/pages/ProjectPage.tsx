@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, type Project, type Transaction, type Category } from '../lib/supabase'
-import { ArrowRight, Plus, Share2, TrendingUp, TrendingDown, Wallet, Search, Trash2, Image, X, Check, Upload, Eye, Tag, BarChart2, FileText, PieChart, Edit2, Calendar, Target, Clock, Activity, EyeOff } from 'lucide-react'
+import { ArrowRight, Plus, Share2, TrendingUp, TrendingDown, Wallet, Search, Trash2, Image, X, Check, Upload, Eye, Tag, BarChart2, FileText, PieChart, Edit2, Calendar, Target, Clock, Activity, EyeOff, Sparkles, Link2 } from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
 import { ar } from 'date-fns/locale'
 import VoiceInput from '../components/VoiceInput'
@@ -63,6 +63,15 @@ export default function ProjectPage() {
   const [kpiForm, setKpiForm] = useState({ start_date:'', end_date:'', budget:'', show_kpis: true })
   const [savingKpi, setSavingKpi] = useState(false)
   const [currency, setCurrency] = useState<string>('ر.س')
+
+  // Story milestones (قصة بيتك)
+  const [showStory, setShowStory] = useState(false)
+  const [milestones, setMilestones] = useState<any[]>([])
+  const [msForm, setMsForm] = useState({ title:'', description:'', date:format(new Date(),'yyyy-MM-dd') })
+  const [msPhoto, setMsPhoto] = useState<File|null>(null)
+  const [savingMs, setSavingMs] = useState(false)
+  const [storyMsg, setStoryMsg] = useState('')
+  const msFileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { fetchAll() }, [id])
 
@@ -182,6 +191,43 @@ export default function ProjectPage() {
     setSavingKpi(false); setShowKpiForm(false); fetchAll()
   }
 
+  // ===== قصة بيتك =====
+  const openStory = async () => {
+    setShowStory(true)
+    const { data } = await supabase.from('project_milestones').select('*').eq('project_id', id).order('sort_order')
+    setMilestones(data || [])
+  }
+
+  const copyStoryLink = async () => {
+    if (!project) return
+    await navigator.clipboard.writeText(`${window.location.origin}/story/${project.share_token}`)
+    setStoryMsg('تم نسخ رابط القصة!'); setTimeout(() => setStoryMsg(''), 2000)
+  }
+
+  const saveMilestone = async () => {
+    if (!msForm.title || !msForm.date) return
+    setSavingMs(true)
+    let photo_url: string | null = null
+    if (msPhoto) {
+      const path = `${id}/milestones/${Date.now()}.${msPhoto.name.split('.').pop()}`
+      const { error } = await supabase.storage.from('receipts').upload(path, msPhoto)
+      if (!error) { const { data } = supabase.storage.from('receipts').getPublicUrl(path); photo_url = data.publicUrl }
+    }
+    await supabase.from('project_milestones').insert({
+      project_id: id, title: msForm.title, description: msForm.description || null,
+      photo_url, milestone_date: msForm.date, sort_order: milestones.length
+    })
+    setMsForm({ title:'', description:'', date:format(new Date(),'yyyy-MM-dd') }); setMsPhoto(null); setSavingMs(false)
+    const { data } = await supabase.from('project_milestones').select('*').eq('project_id', id).order('sort_order')
+    setMilestones(data || [])
+  }
+
+  const deleteMilestone = async (msId: string) => {
+    if (!confirm('حذف هذه المرحلة من القصة؟')) return
+    await supabase.from('project_milestones').delete().eq('id', msId)
+    setMilestones(prev => prev.filter(m => m.id !== msId))
+  }
+
   const saveCategory = async () => {
     if (!catForm.name.trim()) return
     setSavingCat(true)
@@ -235,6 +281,7 @@ export default function ProjectPage() {
             <button onClick={generatePDF} disabled={generatingPDF} className="btn-ghost !py-2 !px-3 flex items-center gap-1.5 text-xs disabled:opacity-40"><FileText size={14}/>{generatingPDF?'جاري...':'تقرير'}</button>
             <button onClick={() => navigate(`/share/${project.share_token}`)} className="btn-ghost !py-2 !px-3 flex items-center gap-1.5 text-xs"><Eye size={14}/>معاينة</button>
             <button onClick={handleShare} className="btn-ghost !py-2 !px-3 flex items-center gap-1.5 text-xs"><Share2 size={14}/>{shareMsg||'مشاركة'}</button>
+            {isOwner && <button onClick={openStory} className="btn-ghost !py-2 !px-3 flex items-center gap-1.5 text-xs" style={{borderColor:'rgba(201,169,110,0.3)', color:'#c9a96e'}}><Sparkles size={14}/>القصة</button>}
           </div>
         </div>
       </header>
@@ -507,6 +554,63 @@ export default function ProjectPage() {
           </div></div>
         </div>}
       </main>
+
+      {/* Story Modal — قصة بيتك */}
+      {showStory && <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{background:'rgba(0,0,0,0.8)',backdropFilter:'blur(4px)'}} onClick={e=>e.target===e.currentTarget&&setShowStory(false)}>
+        <div className="card w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-black text-lg flex items-center gap-2"><Sparkles size={18} style={{color:'#c9a96e'}}/>قصة بيتك</h3>
+            <button onClick={()=>setShowStory(false)} className="opacity-40 hover:opacity-70"><X size={20}/></button>
+          </div>
+          <p className="text-xs opacity-40 mb-4">صفحة فاخرة يتابع فيها عميلك مراحل بناء بيته بالصور — أضف المراحل هنا وأرسل له الرابط</p>
+
+          {/* نسخ الرابط */}
+          <button onClick={copyStoryLink} className="btn-primary w-full flex items-center justify-center gap-2 mb-5">
+            <Link2 size={16}/>{storyMsg || 'نسخ رابط القصة للعميل'}
+          </button>
+
+          {/* إضافة مرحلة */}
+          <div className="rounded-xl p-4 mb-5" style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(201,169,110,0.15)'}}>
+            <p className="font-bold text-sm mb-3" style={{color:'#c9a96e'}}>+ مرحلة جديدة</p>
+            <div className="space-y-3">
+              <input value={msForm.title} onChange={e=>setMsForm(f=>({...f,title:e.target.value}))} className="input-field" placeholder="عنوان المرحلة — مثال: صبّة القواعد"/>
+              <textarea value={msForm.description} onChange={e=>setMsForm(f=>({...f,description:e.target.value}))} className="input-field resize-none" rows={2} placeholder="وصف قصير للعميل (اختياري)"/>
+              <div className="grid grid-cols-2 gap-3">
+                <input type="date" value={msForm.date} onChange={e=>setMsForm(f=>({...f,date:e.target.value}))} className="input-field"/>
+                <div>
+                  <input ref={msFileRef} type="file" accept="image/*" className="hidden" onChange={e=>setMsPhoto(e.target.files?.[0]||null)}/>
+                  <button onClick={()=>msFileRef.current?.click()} className="btn-ghost w-full flex items-center justify-center gap-2 text-sm !py-2.5">
+                    <Upload size={14}/>{msPhoto ? '✓ صورة' : 'صورة المرحلة'}
+                  </button>
+                </div>
+              </div>
+              <button onClick={saveMilestone} disabled={!msForm.title||savingMs} className="btn-primary w-full disabled:opacity-40 flex items-center justify-center gap-2">
+                {savingMs ? <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"/>حفظ...</> : <><Check size={16}/>إضافة للمرحلة</>}
+              </button>
+            </div>
+          </div>
+
+          {/* المراحل الحالية */}
+          {milestones.length === 0 ? (
+            <p className="text-center text-sm opacity-30 py-4">ما فيه مراحل بعد — أضف أول مرحلة وابدأ القصة 🌱</p>
+          ) : (
+            <div className="space-y-2">
+              {milestones.map(m => (
+                <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl group" style={{background:'rgba(255,255,255,0.03)'}}>
+                  {m.photo_url
+                    ? <img src={m.photo_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0"/>
+                    : <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:'rgba(201,169,110,0.12)'}}><Calendar size={16} style={{color:'#c9a96e'}}/></div>}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{m.title}</p>
+                    <p className="text-xs opacity-40">{m.milestone_date}</p>
+                  </div>
+                  <button onClick={()=>deleteMilestone(m.id)} className="opacity-0 group-hover:opacity-40 hover:!opacity-70 transition-opacity text-red-400"><Trash2 size={14}/></button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>}
 
       {/* Add/Edit Transaction Modal */}
       {showForm && <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{background:'rgba(0,0,0,0.8)',backdropFilter:'blur(4px)'}} onClick={e=>e.target===e.currentTarget&&setShowForm(false)}>
