@@ -91,7 +91,7 @@ export default function ClientPortal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+      <div className="min-h-screen bg-[#12100E] flex items-center justify-center">
         <div className="text-[#c9a96e] animate-pulse text-lg">جاري فتح قصة بيتك…</div>
       </div>
     );
@@ -99,7 +99,7 @@ export default function ClientPortal() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center" dir="rtl">
+      <div className="min-h-screen bg-[#12100E] flex items-center justify-center" dir="rtl">
         <div className="text-gray-400">الرابط غير صحيح أو انتهت صلاحيته</div>
       </div>
     );
@@ -114,7 +114,7 @@ export default function ClientPortal() {
   const daysLeft = Math.max(Math.ceil((end - now) / 86_400_000), 0);
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white" dir="rtl">
+    <div className="min-h-screen bg-[#12100E] text-white" dir="rtl">
       {/* ===== الغلاف ===== */}
       <header className="relative overflow-hidden">
         {/* أول صورة مرحلة = خلفية الغلاف */}
@@ -125,7 +125,7 @@ export default function ClientPortal() {
               alt=""
               className="w-full h-full object-cover opacity-25"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0f1117]/40 via-[#0f1117]/80 to-[#0f1117]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#12100E]/40 via-[#12100E]/80 to-[#12100E]" />
           </div>
         )}
 

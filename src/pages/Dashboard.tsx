@@ -103,9 +103,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#0f1117' }}>
+    <div className="min-h-screen" style={{ background: '#12100E' }}>
       <header className="sticky top-0 z-50" style={{
-        background: 'rgba(15,17,23,0.8)', backdropFilter: 'blur(20px)',
+        background: 'rgba(18,16,14,0.8)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(201,169,110,0.1)'
       }}>
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -246,7 +246,7 @@ export default function Dashboard() {
                       <button key={ic} onClick={() => setNewIcon(ic)}
                         className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
                         style={newIcon === ic ? {
-                          background: 'linear-gradient(135deg, #c9a96e, #a07d54)', color: '#0f1117'
+                          background: 'linear-gradient(135deg, #c9a96e, #a07d54)', color: '#12100E'
                         } : { background: 'rgba(255,255,255,0.06)', color: 'rgba(245,240,232,0.5)' }}>
                         <Ic size={18} />
                       </button>

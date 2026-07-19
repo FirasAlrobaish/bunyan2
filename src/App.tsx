@@ -22,7 +22,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [])
 
   if (user === undefined) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f1117' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#12100E' }}>
       <div className="w-8 h-8 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -42,7 +42,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   }, [])
 
   if (user === undefined) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f1117' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#12100E' }}>
       <div className="w-8 h-8 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin" />
     </div>
   )

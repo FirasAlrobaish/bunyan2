@@ -19,8 +19,8 @@ function PieChartSVG({ data }: { data: { label: string; value: number; color: st
   const xy = (pct: number, r: number) => [50 + r * Math.cos(pct * 2 * Math.PI - Math.PI/2), 50 + r * Math.sin(pct * 2 * Math.PI - Math.PI/2)]
   return (
     <svg viewBox="0 0 100 100" className="w-full max-w-[160px] mx-auto">
-      {slices.map((s, i) => { const [x1,y1]=xy(s.start,38); const [x2,y2]=xy(s.start+s.pct,38); return <path key={i} d={`M50,50 L${x1},${y1} A38,38 0 ${s.pct>0.5?1:0},1 ${x2},${y2} Z`} fill={s.color} opacity={0.85} stroke="#1a1d27" strokeWidth="1"/> })}
-      <circle cx="50" cy="50" r="22" fill="#1a1d27"/>
+      {slices.map((s, i) => { const [x1,y1]=xy(s.start,38); const [x2,y2]=xy(s.start+s.pct,38); return <path key={i} d={`M50,50 L${x1},${y1} A38,38 0 ${s.pct>0.5?1:0},1 ${x2},${y2} Z`} fill={s.color} opacity={0.85} stroke="#1A1714" strokeWidth="1"/> })}
+      <circle cx="50" cy="50" r="22" fill="#1A1714"/>
     </svg>
   )
 }
@@ -262,12 +262,12 @@ export default function ProjectPage() {
   const uniqueCats = [...new Set(approvedTxns.map(t=>t.category).filter(Boolean))]
   const kpi = kpiData()
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'#0f1117'}}><div className="w-8 h-8 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"/></div>
-  if (!project) return <div className="min-h-screen flex items-center justify-center" style={{background:'#0f1117'}}><p className="opacity-40">المشروع غير موجود</p></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'#12100E'}}><div className="w-8 h-8 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"/></div>
+  if (!project) return <div className="min-h-screen flex items-center justify-center" style={{background:'#12100E'}}><p className="opacity-40">المشروع غير موجود</p></div>
 
   return (
-    <div className="min-h-screen" style={{background:'#0f1117'}}>
-      <header className="sticky top-0 z-50" style={{background:'rgba(15,17,23,0.9)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(201,169,110,0.1)'}}>
+    <div className="min-h-screen" style={{background:'#12100E'}}>
+      <header className="sticky top-0 z-50" style={{background:'rgba(18,16,14,0.9)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(201,169,110,0.1)'}}>
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate('/')} className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-white/5 transition-colors"><ArrowRight size={18} className="opacity-60"/></button>
@@ -319,7 +319,7 @@ export default function ProjectPage() {
             {key:'categories',label:'الفئات',Icon:Tag}
           ] as const).map(({key,label,Icon}) => (
             <button key={key} onClick={() => setActiveView(key as any)} className="px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5"
-              style={activeView===key?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#0f1117'}:{color:'rgba(245,240,232,0.4)'}}>
+              style={activeView===key?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#12100E'}:{color:'rgba(245,240,232,0.4)'}}>
               <Icon size={13}/>{label}
             </button>
           ))}
@@ -357,7 +357,7 @@ export default function ProjectPage() {
             <div className="relative flex-1 min-w-40"><Search size={14} className="absolute top-1/2 -translate-y-1/2 left-4 opacity-30"/><input value={search} onChange={e=>setSearch(e.target.value)} className="input-field pl-10 !py-2.5 text-sm" placeholder="بحث..."/></div>
             {uniqueCats.length>0 && <select value={filterCat} onChange={e=>setFilterCat(e.target.value)} className="input-field !py-2.5 text-sm w-auto"><option value="">كل الفئات</option>{uniqueCats.map(c=><option key={c} value={c!}>{c}</option>)}</select>}
             <div className="flex gap-1 p-1 rounded-xl" style={{background:'rgba(255,255,255,0.04)'}}>
-              {(['all','INCOME','EXPENSE'] as const).map(tab=><button key={tab} onClick={()=>setActiveTab(tab)} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all" style={activeTab===tab?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#0f1117'}:{color:'rgba(245,240,232,0.4)'}}>{tab==='all'?'الكل':tab==='INCOME'?'المدفوعات':'مصاريف'}</button>)}
+              {(['all','INCOME','EXPENSE'] as const).map(tab=><button key={tab} onClick={()=>setActiveTab(tab)} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all" style={activeTab===tab?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#12100E'}:{color:'rgba(245,240,232,0.4)'}}>{tab==='all'?'الكل':tab==='INCOME'?'المدفوعات':'مصاريف'}</button>)}
             </div>
             {isOwner && <button onClick={()=>{setEditingTx(null);setForm({type:'EXPENSE',title:'',amount:'',category:'',date:format(new Date(),'yyyy-MM-dd'),notes:'',quantity:'',unit_price:''});setShowForm(true)}} className="btn-primary flex items-center gap-2 !py-2.5"><Plus size={16}/>إضافة</button>}
           </div>

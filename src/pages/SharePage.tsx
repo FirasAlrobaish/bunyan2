@@ -17,8 +17,8 @@ function PieChartSVG({ data }: { data: { label: string; value: number; color: st
   const xy = (pct: number, r: number) => [50 + r * Math.cos(pct * 2 * Math.PI - Math.PI/2), 50 + r * Math.sin(pct * 2 * Math.PI - Math.PI/2)]
   return (
     <svg viewBox="0 0 100 100" className="w-full max-w-[160px] mx-auto">
-      {slices.map((s, i) => { const [x1,y1]=xy(s.start,38); const [x2,y2]=xy(s.start+s.pct,38); return <path key={i} d={`M50,50 L${x1},${y1} A38,38 0 ${s.pct>0.5?1:0},1 ${x2},${y2} Z`} fill={s.color} opacity={0.85} stroke="#1a1d27" strokeWidth="1"/> })}
-      <circle cx="50" cy="50" r="22" fill="#1a1d27"/>
+      {slices.map((s, i) => { const [x1,y1]=xy(s.start,38); const [x2,y2]=xy(s.start+s.pct,38); return <path key={i} d={`M50,50 L${x1},${y1} A38,38 0 ${s.pct>0.5?1:0},1 ${x2},${y2} Z`} fill={s.color} opacity={0.85} stroke="#1A1714" strokeWidth="1"/> })}
+      <circle cx="50" cy="50" r="22" fill="#1A1714"/>
     </svg>
   )
 }
@@ -151,10 +151,10 @@ export default function SharePage() {
     fetchAll()
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'#0f1117'}}><div className="w-8 h-8 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"/></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{background:'#12100E'}}><div className="w-8 h-8 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"/></div>
 
   if (!project) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'#0f1117'}}>
+    <div className="min-h-screen flex items-center justify-center" style={{background:'#12100E'}}>
       <div className="text-center opacity-40"><Building2 size={48} className="mx-auto mb-4 opacity-30"/><p>الرابط غير صحيح</p></div>
     </div>
   )
@@ -177,9 +177,9 @@ export default function SharePage() {
   const coverPhoto = [...milestones].reverse().find(m => m.photo_url)?.photo_url as string | undefined
 
   return (
-    <div className="min-h-screen" style={{background:'#0f1117'}} dir="rtl">
+    <div className="min-h-screen" style={{background:'#12100E'}} dir="rtl">
       {/* ===== الهيدر الثابت ===== */}
-      <header className="sticky top-0 z-40" style={{background:'rgba(15,17,23,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(201,169,110,0.12)'}}>
+      <header className="sticky top-0 z-40" style={{background:'rgba(18,16,14,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(201,169,110,0.12)'}}>
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:'linear-gradient(135deg,#c9a96e22,#c9a96e44)'}}>
@@ -198,7 +198,7 @@ export default function SharePage() {
         {coverPhoto && (
           <div className="absolute inset-0">
             <img src={coverPhoto} alt="" className="w-full h-full object-cover opacity-25"/>
-            <div className="absolute inset-0" style={{background:'linear-gradient(to bottom, rgba(15,17,23,0.5), rgba(15,17,23,0.85), #0f1117)'}}/>
+            <div className="absolute inset-0" style={{background:'linear-gradient(to bottom, rgba(18,16,14,0.5), rgba(18,16,14,0.85), #12100E)'}}/>
           </div>
         )}
         <div className="relative max-w-3xl mx-auto px-4 pt-14 pb-10 text-center">
@@ -334,7 +334,7 @@ export default function SharePage() {
           <div className="flex gap-1 p-1 rounded-xl w-fit mb-4" style={{background:'rgba(255,255,255,0.04)'}}>
             {([{key:'list',label:'السجل',Icon:Wallet},{key:'charts',label:'التقارير',Icon:BarChart2}] as const).map(({key,label,Icon}) => (
               <button key={key} onClick={() => setActiveView(key as any)} className="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
-                style={activeView===key?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#0f1117'}:{color:'rgba(245,240,232,0.4)'}}>
+                style={activeView===key?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#12100E'}:{color:'rgba(245,240,232,0.4)'}}>
                 <Icon size={14}/>{label}
               </button>
             ))}
@@ -344,7 +344,7 @@ export default function SharePage() {
             <div className="flex gap-1 p-1 rounded-xl w-fit mb-4" style={{background:'rgba(255,255,255,0.04)'}}>
               {(['all','INCOME','EXPENSE'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                  style={activeTab===tab?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#0f1117'}:{color:'rgba(245,240,232,0.4)'}}>
+                  style={activeTab===tab?{background:'linear-gradient(135deg,#c9a96e,#a07d54)',color:'#12100E'}:{color:'rgba(245,240,232,0.4)'}}>
                   {tab==='all'?`الكل (${approvedTxns.length})`:tab==='INCOME'?`إيرادات (${approvedTxns.filter(t=>t.type==='INCOME').length})`:`مصاريف (${approvedTxns.filter(t=>t.type==='EXPENSE').length})`}
                 </button>
               ))}

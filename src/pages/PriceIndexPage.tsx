@@ -167,7 +167,7 @@ export default function PriceIndexPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: '#0f1117' }} dir="rtl">
+    <div className="min-h-screen" style={{ background: '#12100E' }} dir="rtl">
     <div className="max-w-4xl mx-auto px-4 py-6 fade-in">
       {/* الترويسة */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -260,7 +260,7 @@ export default function PriceIndexPage() {
               <div className="mt-3">
                 <div className="relative h-1.5 rounded-full bg-gray-700">
                   <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#c9a96e] border-2 border-[#0f1117]"
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#c9a96e] border-2 border-[#12100E]"
                     style={{ right: `calc(${Math.min(Math.max(pos, 0), 100)}% - 6px)` }}
                   />
                 </div>
