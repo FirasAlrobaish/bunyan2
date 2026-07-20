@@ -9,6 +9,28 @@ import SharePage from './pages/SharePage'
 import AdminPage from './pages/AdminPage'
 import PriceIndexPage from './pages/PriceIndexPage'
 import ClientPortal from './pages/ClientPortal'
+import LandingPage from './pages/LandingPage'
+
+// الجذر: زائر جديد → صفحة الهبوط | مقاول مسجل → الداشبورد
+function HomeRoute() {
+  const [user, setUser] = useState<User | null | undefined>(undefined)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (user === undefined) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#12100E' }}>
+      <div className="w-8 h-8 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+
+  return user ? <Dashboard /> : <LandingPage />
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined)
@@ -54,7 +76,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
-      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/" element={<HomeRoute />} />
       <Route path="/project/:id" element={<ProtectedRoute><ProjectPage /></ProtectedRoute>} />
       <Route path="/share/:token" element={<SharePage />} />
       <Route path="/prices" element={<ProtectedRoute><PriceIndexPage /></ProtectedRoute>} />
